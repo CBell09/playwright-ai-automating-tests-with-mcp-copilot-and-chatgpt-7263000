@@ -1,7 +1,5 @@
 import { randomUUID } from 'crypto';
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
-import { BoardPage } from '../pages/BoardPage';
+import { test, expect } from '../fixtures/pages';
 
 const bugTemplates = [
   { title: 'Login page crashes on empty password', severity: 'HIGH', owner: 'buggy', description: 'App crashes when submitting an empty password on login.' },
@@ -22,12 +20,11 @@ test.describe('Search Bug', () => {
   let suffix: string;
   let title: (base: string) => string;
 
-  test.beforeEach(async ({ page, request }) => {
+  test.beforeEach(async ({ page, request, loginPage }) => {
     suffix = randomUUID().slice(0, 8);
     title = (base: string) => `${base} ${suffix}`;
 
     // Arrange - Login via UI
-    const loginPage = new LoginPage(page);
     await loginPage.goto();
     await loginPage.login('buggy', '1970beetle');
 
@@ -50,10 +47,7 @@ test.describe('Search Bug', () => {
     createdBugIds = [];
   });
 
-  test('Search bugs by title matching multiple results', async ({ page }) => {
-    // Arrange
-    const boardPage = new BoardPage(page);
-
+  test('Search bugs by title matching multiple results', async ({ boardPage }) => {
     // Act
     await boardPage.searchByTitle('page');
 
@@ -70,10 +64,7 @@ test.describe('Search Bug', () => {
     await expect(await boardPage.getBugCellByTitle(title('Sort resets on page refresh'))).toBeVisible();
   });
 
-  test('Search bugs by title matching subset of results', async ({ page }) => {
-    // Arrange
-    const boardPage = new BoardPage(page);
-
+  test('Search bugs by title matching subset of results', async ({ boardPage }) => {
     // Act
     await boardPage.searchByTitle('login');
 
@@ -91,10 +82,7 @@ test.describe('Search Bug', () => {
     await expect(await boardPage.getBugCellByTitle(title('Sort resets on page refresh'))).not.toBeVisible();
   });
 
-  test('Search bugs by title with no matches', async ({ page }) => {
-    // Arrange
-    const boardPage = new BoardPage(page);
-
+  test('Search bugs by title with no matches', async ({ boardPage }) => {
     // Act
     await boardPage.searchByTitle('xyzzy');
 

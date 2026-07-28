@@ -1,26 +1,20 @@
-import { test, expect } from '@playwright/test';
-import { BoardPage } from '../pages/BoardPage';
-import { EditBugModal } from '../pages/EditBugModal';
+import { test, expect } from '../fixtures/pages';
 import { login, createBug, deleteBugIfExists } from './test-helpers';
 
 test.describe('Delete Bug - cancel retains bug', () => {
   let title: string;
 
-  test.beforeEach(async ({ page }) => {
-    await login(page);
+  test.beforeEach(async ({ page, loginPage, boardPage, createBugModal }) => {
+    await login(loginPage);
     title = `delete-bug-${Date.now()}`;
-    await createBug(page, title);
+    await createBug(page, boardPage, createBugModal, title);
   });
 
-  test.afterEach(async ({ page }) => {
-    await deleteBugIfExists(page, title);
+  test.afterEach(async ({ page, boardPage, editBugModal }) => {
+    await deleteBugIfExists(page, boardPage, editBugModal, title);
   });
 
-  test('should_not_delete_when_cancelled', async ({ page }) => {
-    // Arrange
-    const boardPage = new BoardPage(page);
-    const editBugModal = new EditBugModal(page);
-
+  test('should_not_delete_when_cancelled', async ({ page, boardPage, editBugModal }) => {
     // Act
     await boardPage.clickBugByTitle(title);
     await expect(editBugModal.dialog).toBeVisible();
