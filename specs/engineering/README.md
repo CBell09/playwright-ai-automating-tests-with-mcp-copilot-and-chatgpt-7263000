@@ -7,5 +7,6 @@ This folder holds **technical context**: how we build and run the app, and what 
 - **development-process.md** – How we work: spec-first, one feature at a time, pause for review, progress in PROGRESS.md.
 - **api-conventions.md** – Backend API routes must use the `/api` path prefix.
 - **gherkin-standards.md** – How to write Gherkin scenarios in feature specs (BDD, Given/When/Then, one behavior per scenario, Cucumber syntax).
+- **test-automation-patterns.md** – Playwright test conventions: new/refactored tests must use page objects (not raw locator chains), one page object class per file under `tests/pages/`, following Playwright's POM doc.
 
 You can add more engineering docs here (e.g. folder structure, deployment, security) as needed.
