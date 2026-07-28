@@ -1,5 +1,8 @@
 import { readFile } from 'fs/promises';
 import { test, expect } from '@playwright/test';
+import { LoginPage } from '../pages/login-page';
+import { BoardPage } from '../pages/board-page';
+import { CreateBugModal } from '../pages/create-bug-modal';
 
 type User = {
   username: string;
@@ -13,26 +16,26 @@ test.describe('Create bug flow', () => {
     ) as User[];
     const user = users[0];
 
-    // 1. Log in to BuggyBoard and navigate to the board page.
-    await page.goto('/login');
-    await expect(page.getByRole('heading', { name: 'BuggyBoard' })).toBeVisible();
+    const loginPage = new LoginPage(page);
+    const boardPage = new BoardPage(page);
+    const createBugModal = new CreateBugModal(page);
 
-    await page.getByLabel('Username').fill(user.username);
-    await page.getByLabel('Password').fill(user.password);
-    await page.getByRole('button', { name: 'Login' }).click();
+    // 1. Log in to BuggyBoard and navigate to the board page.
+    await loginPage.goto();
+    await expect(loginPage.heading).toBeVisible();
+
+    await loginPage.login(user.username, user.password);
 
     await expect(page).toHaveURL(/\/board/);
 
     // 2. Click the New Bug button in the title bar.
-    const newBugButton = page.getByRole('button', { name: 'New Bug' });
-    await expect(newBugButton).toBeVisible();
-    await newBugButton.click();
+    await expect(boardPage.newBugButton).toBeVisible();
+    await boardPage.openCreateBugModal();
 
-    const dialog = page.getByRole('dialog', { name: 'Create bug' });
-    await expect(dialog).toBeVisible();
-    await expect(page.getByLabel('Title')).toBeVisible();
-    await expect(page.getByLabel('Severity')).toBeVisible();
-    await expect(page.getByLabel('Owner')).toBeVisible();
-    await expect(page.getByLabel('Description')).toBeVisible();
+    await expect(createBugModal.dialog).toBeVisible();
+    await expect(createBugModal.titleInput).toBeVisible();
+    await expect(createBugModal.severitySelect).toBeVisible();
+    await expect(createBugModal.ownerInput).toBeVisible();
+    await expect(createBugModal.descriptionInput).toBeVisible();
   });
 });

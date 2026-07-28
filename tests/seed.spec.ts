@@ -1,5 +1,7 @@
 import { readFile } from 'fs/promises';
 import { test, expect } from '@playwright/test';
+import { LoginPage } from './pages/login-page';
+import { BoardPage } from './pages/board-page';
 
 type User = {
   username: string;
@@ -13,14 +15,15 @@ test.describe('BuggyBoard login seed', () => {
     ) as User[];
     const user = users[0];
 
-    await page.goto('/login');
-    await expect(page.getByRole('heading', { name: 'BuggyBoard' })).toBeVisible();
+    const loginPage = new LoginPage(page);
+    const boardPage = new BoardPage(page);
 
-    await page.getByLabel('Username').fill(user.username);
-    await page.getByLabel('Password').fill(user.password);
-    await page.getByRole('button', { name: 'Login' }).click();
+    await loginPage.goto();
+    await expect(loginPage.heading).toBeVisible();
+
+    await loginPage.login(user.username, user.password);
 
     await expect(page).toHaveURL(/\/board/);
-    await expect(page.getByRole('button', { name: 'New Bug' })).toBeVisible();
+    await expect(boardPage.newBugButton).toBeVisible();
   });
 });
