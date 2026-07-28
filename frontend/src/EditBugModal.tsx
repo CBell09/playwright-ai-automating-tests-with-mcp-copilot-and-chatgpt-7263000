@@ -1,4 +1,5 @@
 import { useState, useEffect, FormEvent, useRef } from "react";
+import { ConfirmDeleteBugModal } from "./ConfirmDeleteBugModal";
 
 export type Severity = "high" | "mid" | "low";
 
@@ -50,6 +51,7 @@ export function EditBugModal({ bug, onClose, onSaved }: EditBugModalProps) {
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   const isOpen = bug !== null;
@@ -64,6 +66,7 @@ export function EditBugModal({ bug, onClose, onSaved }: EditBugModalProps) {
       setValidationErrors([]);
       setLoading(false);
       setDeleting(false);
+      setShowDeleteConfirm(false);
       queueMicrotask(() => titleInputRef.current?.focus());
     }
   }, [bug]);
@@ -71,6 +74,7 @@ export function EditBugModal({ bug, onClose, onSaved }: EditBugModalProps) {
   useEffect(() => {
     if (!isOpen) return;
     function handleEscape(e: KeyboardEvent) {
+      if (showDeleteConfirm) return;
       if (e.key === "Escape") {
         e.preventDefault();
         onClose();
@@ -78,7 +82,7 @@ export function EditBugModal({ bug, onClose, onSaved }: EditBugModalProps) {
     }
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, showDeleteConfirm]);
 
   const initial = bug
     ? {
@@ -163,20 +167,33 @@ export function EditBugModal({ bug, onClose, onSaved }: EditBugModalProps) {
     onClose();
   }
 
-  async function handleDelete() {
-    if (!bug || deleting || loading) return;
+  function openDeleteConfirm() {
+    if (deleting || loading) return;
+    setShowDeleteConfirm(true);
+  }
+
+  function cancelDeleteConfirm() {
+    if (deleting) return;
+    setShowDeleteConfirm(false);
+  }
+
+  async function confirmDelete() {
+    if (!bug || deleting) return;
     setDeleting(true);
     setValidationErrors([]);
     try {
       const res = await fetch(`/api/bugs/${bug.id}`, { method: "DELETE" });
       if (res.ok) {
+        setShowDeleteConfirm(false);
         onSaved();
         onClose();
         return;
       }
       const data = (await res.json().catch(() => ({}))) as { message?: string };
+      setShowDeleteConfirm(false);
       setValidationErrors([data.message ?? "Failed to delete bug."]);
     } catch {
+      setShowDeleteConfirm(false);
       setValidationErrors(["Something went wrong. Please try again."]);
     } finally {
       setDeleting(false);
@@ -311,7 +328,7 @@ export function EditBugModal({ bug, onClose, onSaved }: EditBugModalProps) {
           <div className="flex gap-3 justify-between pt-2">
             <button
               type="button"
-              onClick={handleDelete}
+              onClick={openDeleteConfirm}
               className="rounded px-4 py-2 text-sm font-medium text-red-700 border border-red-200 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading || deleting}
             >
@@ -338,6 +355,14 @@ export function EditBugModal({ bug, onClose, onSaved }: EditBugModalProps) {
         </form>
       </div>
       </div>
+      <ConfirmDeleteBugModal
+        isOpen={showDeleteConfirm}
+        bugId={bug.id}
+        bugTitle={bug.title}
+        confirming={deleting}
+        onConfirm={confirmDelete}
+        onCancel={cancelDeleteConfirm}
+      />
     </div>
   );
 }
