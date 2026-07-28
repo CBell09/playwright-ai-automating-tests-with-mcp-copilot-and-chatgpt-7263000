@@ -3,12 +3,14 @@ import { LoginPage } from '../pages/LoginPage';
 import { BoardPage } from '../pages/BoardPage';
 import { CreateBugModal } from '../pages/CreateBugModal';
 import { EditBugModal } from '../pages/EditBugModal';
+import { ConfirmDeleteBugModal } from '../pages/ConfirmDeleteBugModal';
 
 type PagesFixtures = {
   loginPage: LoginPage;
   boardPage: BoardPage;
   createBugModal: CreateBugModal;
   editBugModal: EditBugModal;
+  confirmDeleteBugModal: ConfirmDeleteBugModal;
 };
 
 export const test = base.extend<PagesFixtures>({
@@ -29,6 +31,11 @@ export const test = base.extend<PagesFixtures>({
 
   editBugModal: async ({ page }, use) => {
     const modal = new EditBugModal(page);
+    await use(modal);
+  },
+
+  confirmDeleteBugModal: async ({ page }, use) => {
+    const modal = new ConfirmDeleteBugModal(page);
     await use(modal);
   },
 });

@@ -9,11 +9,12 @@ export class EditBugModal {
   constructor(page: Page) {
     this.page = page;
     this.dialog = page.getByRole('dialog', { name: /Edit bug/ });
-    this.deleteButton = this.dialog.getByRole('button', { name: 'Delete' });
+    this.deleteButton = this.dialog.getByRole('button', { name: 'Delete', exact: true });
     this.cancelButton = this.dialog.getByRole('button', { name: 'Cancel' });
   }
 
-  async delete() {
+  /** Clicks Delete, which opens the confirm-delete modal (does not delete by itself). */
+  async clickDelete() {
     await this.deleteButton.click();
   }
 
